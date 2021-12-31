@@ -4,14 +4,28 @@ using System.Threading.Tasks;
 
 namespace CLI.Processes
 {
-    public sealed class ProcessExecutor : IProcessExecutor
+    public abstract class ProcessExecutor : IProcessExecutor
     {
+        private readonly Shell shell;
+        private readonly string terminator;
+
+        public ProcessExecutor(Shell shell)
+        {
+            this.shell = shell;
+            terminator = shell switch
+            {
+                Shell.Cmd => "/c",
+                Shell.Bash => "-c",
+                _ => ""
+            };
+        }
+
         public Task<string> ExecuteAsync(ICommand command)
         {
             Process process = Process.Start(new ProcessStartInfo()
             {
-                FileName = command.Shell.ToString(),
-                Arguments = $"{command.TerminationFlag} {command.Name} {command.Arguments}",
+                FileName = shell.ToString(),
+                Arguments = $"{terminator} {command.Name} {command.Arguments}",
                 RedirectStandardOutput = true
             });
 
